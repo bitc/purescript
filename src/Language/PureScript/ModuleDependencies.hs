@@ -16,6 +16,7 @@
 
 module Language.PureScript.ModuleDependencies (
   sortModules,
+  usedModules,
   ModuleGraph
 ) where
 

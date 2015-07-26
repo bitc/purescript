@@ -71,8 +71,8 @@ moduleToPs (Module _ moduleName ds (Just exts)) env = intercalate "\n" . execWri
     declToPs _ = return ()
 
     commentToPs :: Comment -> Writer [String] ()
-    commentToPs (LineComment s) = tell ["-- " ++ s]
-    commentToPs (BlockComment s) = tell ["{- " ++ s ++ " -}"]
+    commentToPs (LineComment s) = return () -- tell ["-- " ++ s]
+    commentToPs (BlockComment s) = return () -- tell ["{- " ++ s ++ " -}"]
 
     exportToPs :: DeclarationRef -> Writer [String] ()
     exportToPs (PositionedDeclarationRef _ _ r) = exportToPs r

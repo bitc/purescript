@@ -20,7 +20,7 @@
 
 module Language.PureScript
   ( module P
-  , version
+--  , version
   ) where
 
 import Data.Version (Version)
@@ -43,7 +43,7 @@ import Control.Monad.Supply as P
 import Language.PureScript.TypeChecker as P
 import Language.PureScript.Types as P
 
-import qualified Paths_purescript as Paths
+--import qualified Paths_purescript as Paths
 
-version :: Version
-version = Paths.version
+--version :: Version
+--version = Paths.version

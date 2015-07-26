@@ -34,7 +34,8 @@ import System.IO (hPutStrLn, stderr)
 import System.FilePath.Glob (glob)
 
 import qualified Language.PureScript as P
-import qualified Paths_purescript as Paths
+import Language.PureScript.OptionsParsing (options)
+--import qualified Paths_purescript as Paths
 
 import Language.PureScript.Make
 
@@ -57,6 +58,7 @@ compile (PSCMakeOptions inputGlob inputForeignGlob outputDir opts usePrefix) = d
     hPutStrLn stderr "psc: No input files."
     exitFailure
   moduleFiles <- readInput (InputOptions input)
+  print moduleFiles
   inputForeign <- concat <$> mapM glob inputForeignGlob
   foreignFiles <- forM inputForeign (\inFile -> (inFile,) <$> readFile inFile)
   case runWriterT (parseInputs moduleFiles foreignFiles) of
@@ -108,39 +110,6 @@ outputDirectory = strOption $
   <> showDefault
   <> help "The output directory"
 
-requirePath :: Parser (Maybe FilePath)
-requirePath = optional $ strOption $
-     short 'r'
-  <> long "require-path"
-  <> help "The path prefix to use for require() calls in the generated JavaScript"
-
-noTco :: Parser Bool
-noTco = switch $
-     long "no-tco"
-  <> help "Disable tail call optimizations"
-
-noMagicDo :: Parser Bool
-noMagicDo = switch $
-     long "no-magic-do"
-  <> help "Disable the optimization that overloads the do keyword to generate efficient code specifically for the Eff monad"
-
-noOpts :: Parser Bool
-noOpts = switch $
-     long "no-opts"
-  <> help "Skip the optimization phase"
-
-comments :: Parser Bool
-comments = switch $
-     short 'c'
-  <> long "comments"
-  <> help "Include comments in the generated code"
-
-verboseErrors :: Parser Bool
-verboseErrors = switch $
-     short 'v'
-  <> long "verbose-errors"
-  <> help "Display verbose error messages"
-
 noPrefix :: Parser Bool
 noPrefix = switch $
      short 'p'
@@ -148,14 +117,6 @@ noPrefix = switch $
   <> help "Do not include comment header"
 
 
-options :: Parser P.Options
-options = P.Options <$> noTco
-                    <*> noMagicDo
-                    <*> pure Nothing
-                    <*> noOpts
-                    <*> verboseErrors
-                    <*> (not <$> comments)
-                    <*> requirePath
                     
 pscMakeOptions :: Parser PSCMakeOptions
 pscMakeOptions = PSCMakeOptions <$> many inputFile
@@ -170,7 +131,7 @@ main = execParser opts >>= compile
   opts        = info (version <*> helper <*> pscMakeOptions) infoModList
   infoModList = fullDesc <> headerInfo <> footerInfo
   headerInfo  = header   "psc - Compiles PureScript to Javascript"
-  footerInfo  = footer $ "psc " ++ showVersion Paths.version
+  footerInfo  = footer $ "psc " ++ "XXX"
 
   version :: Parser (a -> a)
-  version = abortOption (InfoMsg (showVersion Paths.version)) $ long "version" <> help "Show the version number" <> hidden
+  version = abortOption (InfoMsg "XXX") $ long "version" <> help "Show the version number" <> hidden

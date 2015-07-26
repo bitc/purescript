@@ -17,6 +17,7 @@
 module Language.PureScript.Parser.JS
   ( ForeignJS()
   , parseForeignModulesFromFiles
+  , findModuleName
   ) where
 
 import Control.Applicative ((*>), (<*))

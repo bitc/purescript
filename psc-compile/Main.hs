@@ -55,7 +55,7 @@ compile (PSCCompileOptions input outputDir opts onlyDeps usePrefix) = do
         when (P.nonEmpty warnings) $
           hPutStrLn stderr (P.prettyPrintMultipleWarnings (P.optionsVerboseErrors opts) warnings)
         putStrLn "Getting ready..."
-        e <- runCompile opts (compileModule outputDir usePrefix m)
+        e <- runCompile opts (compileModule input outputDir usePrefix m)
         case e of
           Left errs -> do
             hPutStrLn stderr (P.prettyPrintMultipleErrors (P.optionsVerboseErrors opts) errs)

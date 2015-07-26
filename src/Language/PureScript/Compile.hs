@@ -27,13 +27,15 @@ module Language.PureScript.Compile
   , compileModule
   ) where
 
-import Data.List (nub)
+import Data.List (nub, (\\))
 
 import System.FilePath ((</>), replaceExtension, takeDirectory)
 
 import Control.Monad.Trans.Reader (ReaderT, runReaderT)
 import Control.Monad.Supply (SupplyT, evalSupplyT, runSupplyT)
+import Data.Either (partitionEithers)
 import Language.PureScript.Errors (ErrorMessage( SimpleErrorWrapper ), singleError, SimpleErrorMessage (CannotWriteFile))
+import Data.Maybe (mapMaybe)
 import System.Directory
        (doesFileExist, getModificationTime, createDirectoryIfMissing)
 import System.IO.Error (tryIOError)
@@ -220,16 +222,30 @@ getModuleDeps input outputDir m =
       False -> []
 
 
--- TODO 'usedModules' seems to be broken:
---
---     import qualified Foo as F
---     x = F.foo
---
--- It returns the module "F" (as well as "Foo").
--- (Possible fix is to change the implementation to discard qualified names
--- that match a "qualified as" import)
 importedModules :: [Declaration] -> [ModuleName]
-importedModules ds = nub (concatMap usedModules ds)
+importedModules ds =
+    let modsX = (concatMap usedModulesX ds)
+        (lefts, rights) = partitionEithers modsX
+    in (nub rights) \\ (nub lefts)
+
+usedModulesX :: Declaration -> [Either ModuleName ModuleName]
+usedModulesX = let (f, _, _, _, _) = P.everythingOnValues (++) forDecls forValues (const []) (const []) (const []) in nub . f
+  where
+  forDecls :: Declaration -> [Either ModuleName ModuleName]
+  forDecls (ImportDeclaration mn _ Nothing) = [Right mn]
+  forDecls (ImportDeclaration mn _ (Just q)) = [Right mn, Left q]
+  forDecls _ = []
+
+  forValues :: P.Expr -> [Either ModuleName ModuleName]
+  forValues (P.Var (P.Qualified (Just mn) _)) = [Right mn]
+  forValues (P.Constructor (P.Qualified (Just mn) _)) = [Right mn]
+  forValues (P.TypedValue _ _ ty) = forTypes ty
+  forValues _ = []
+
+  forTypes :: P.Type -> [Either ModuleName ModuleName]
+  forTypes (P.TypeConstructor (P.Qualified (Just mn) _)) = [Right mn]
+  forTypes (P.ConstrainedType cs _) = mapMaybe (\(P.Qualified mn _, _) -> maybe Nothing (\x -> Just (Right x)) mn) cs
+  forTypes _ = []
 
 -- |
 -- Check if the module contains any foreign declarations

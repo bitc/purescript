@@ -242,7 +242,6 @@ moduleHasForeign ds = not (null (concatMap foreigns ds)) -- TODO This implementa
 
   forDecls :: Declaration -> [()]
   forDecls (P.ExternDeclaration _ _) = [()]
-  forDecls (P.ExternDataDeclaration _ _) = [()]
   forDecls (P.ExternInstanceDeclaration _ _ _ _) = [()]
   forDecls _ = []
 

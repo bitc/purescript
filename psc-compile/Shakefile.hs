@@ -40,7 +40,7 @@ import Development.Shake.Command
 import Development.Shake.FilePath
 import Development.Shake.Util
 
-import Control.Monad (when)
+import Control.Monad (forM_, when)
 import qualified System.Directory as D
 
 -------------------------------------------------------------------------------
@@ -106,6 +106,14 @@ pureScriptBuild (PureScriptBuild wantOutputJs outputJs outputDir sourceDirs main
 
     outputJs %> \out -> do
         need [outputDir </> mainModule </> "index.js"]
+        -- TODO This is a bit of a hack: We are telling shake to depend on
+        -- *all* of the files we can find in all of the source dirs. The
+        -- correct solution is to be able to track which of the files were used
+        -- by psc-bundle. (but psc-bundle currently does not offer a way to
+        -- glean this information).
+        forM_ sourceDirs $ \sourceDir -> do
+            files <- getDirectoryFiles "" [sourceDir <//> "*.purs", sourceDir <//> "*.js"]
+            need files
         pscBundle <- get_PSC_BUNDLE
         () <- cmd [pscBundle] [outputDir </> "**" </> "*.js"] "-m" [mainModule] "--main" [mainModule] "-o" [out]
         return ()
